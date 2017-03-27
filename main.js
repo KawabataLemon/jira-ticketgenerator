@@ -4,6 +4,8 @@
 const JiraClient = require('jira-connector')
 const { Observable } = require('rx')
 const fs = require('fs')
+const SubTask = require('./SubTask.js')
+const Story = require('./Story.js')
 
 const file = fs.readFileSync('secret.json', 'utf8')
 const json = JSON.parse(file)
@@ -12,6 +14,7 @@ const EPIC_KEY = "エピック"
 const STORY_KEY = "ストーリー"
 const SUBTASK_KEY = "サブタスク"
 
+// 新規作成用のキー
 const PROJECT_IDS = {
   EPIC_KEY: undefined,
   STORY_KEY: undefined,
@@ -20,6 +23,7 @@ const PROJECT_IDS = {
 
 // ロガー
 const logger = {
+  debug: false,
   i:(info) => {
     console.info(info);
   },
@@ -27,12 +31,11 @@ const logger = {
     console.error(err)
   },
   l:(messsage) => {
-    console.log(messsage)
+    if (logger.debug) console.log(messsage)
   }
 }
 
-let jira = new JiraClient(
-  {
+let jira = new JiraClient( {
     host: json.atlassianURL,
     basic_auth: {
       username: json.username,
@@ -77,16 +80,29 @@ jira.issueType.getAllIssueTypes({projectKeys: PROJECT_KEY},(err, responses) => {
   // エピック
   issueTypes.filter(type => type.name == EPIC_KEY).map(type => type.id).subscribe((id)=>{
     PROJECT_IDS.EPIC_KEY = id
-    searchSpecularIssue(id, EPIC_KEY ,PROJECT_KEY)
+    searchSpecularIssue(id, EPIC_KEY, PROJECT_KEY)
   })
 
   issueTypes.filter(type => type.name == STORY_KEY).map(type => type.id).subscribe((id)=>{
     PROJECT_IDS.STORY_KEY = id
-    searchSpecularIssue(id,STORY_KEY, PROJECT_KEY)
+    searchSpecularIssue(id, STORY_KEY, PROJECT_KEY)
   })
 
   issueTypes.filter(type => type.name == SUBTASK_KEY).map(type => type.id).subscribe((id)=>{
     PROJECT_IDS.SUBTASK_KEY = id
-    searchSpecularIssue(id,SUBTASK_KEY, PROJECT_KEY)
+    searchSpecularIssue(id, SUBTASK_KEY, PROJECT_KEY)
   })
+
+  // この段階でID一覧は取得できてる
+  logger.i(PROJECT_IDS)
+
+  // ストーリーとサブタスクを自動生成する
+  let story = new Story("title", "description", [
+      new SubTask("subtask1"),
+      new SubTask("subtask2"),
+      new SubTask("subtask3")
+  ])
+
+  logger.i(story)
+
 })
