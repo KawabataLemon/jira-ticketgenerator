@@ -3,14 +3,20 @@
 //
 const JiraClient = require('jira-connector')
 const { Observable } = require('rx')
-const fs = require('fs');
+const fs = require('fs')
 
-const file = fs.readFileSync('secret.json', 'utf8');
-const json = JSON.parse(file);
+const file = fs.readFileSync('secret.json', 'utf8')
+const json = JSON.parse(file)
 
 const EPIC_KEY = "エピック"
 const STORY_KEY = "ストーリー"
 const SUBTASK_KEY = "サブタスク"
+
+const PROJECT_IDS = {
+  EPIC_KEY: undefined,
+  STORY_KEY: undefined,
+  SUBTASK_KEY: undefined
+}
 
 // ロガー
 const logger = {
@@ -70,14 +76,17 @@ jira.issueType.getAllIssueTypes({projectKeys: PROJECT_KEY},(err, responses) => {
 
   // エピック
   issueTypes.filter(type => type.name == EPIC_KEY).map(type => type.id).subscribe((id)=>{
+    PROJECT_IDS.EPIC_KEY = id
     searchSpecularIssue(id, EPIC_KEY ,PROJECT_KEY)
   })
 
   issueTypes.filter(type => type.name == STORY_KEY).map(type => type.id).subscribe((id)=>{
+    PROJECT_IDS.STORY_KEY = id
     searchSpecularIssue(id,STORY_KEY, PROJECT_KEY)
   })
 
   issueTypes.filter(type => type.name == SUBTASK_KEY).map(type => type.id).subscribe((id)=>{
+    PROJECT_IDS.SUBTASK_KEY = id
     searchSpecularIssue(id,SUBTASK_KEY, PROJECT_KEY)
   })
 })
